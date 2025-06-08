@@ -1,4 +1,4 @@
-# Algoritmo A* para Busca de Caminho
+# Algoritmo A* 
 
 Este projeto implementa o algoritmo A* (A-star) para busca de caminho em um grid 2D com diferentes custos de terreno e obstáculos.
 
@@ -66,6 +66,21 @@ O agente de busca de caminho é implementado através do algoritmo A*, que é um
 3. **`cost_so_far: Dict[Location, float]`**
    - Armazena g(n): custo real do início até cada nó
    - Usado para detectar caminhos melhores para nós já visitados
+
+### Validação e Tratamento de Erros
+
+O sistema implementa validação robusta de posições através da função `validate_positions()`:
+
+#### Verificações Realizadas:
+1. **Limites do Grid**: Posições dentro dos limites (0, 0) até (width-1, height-1)
+2. **Obstáculos**: Start e goal não podem estar em paredes
+3. **Diferenciação**: Start e goal devem ser posições diferentes
+4. **Passabilidade**: Células devem ser transitáveis
+
+#### Tratamento de Erros:
+- `ValueError`: Levantado quando posições são inválidas
+- Mensagens descritivas para cada tipo de erro
+- Validação prévia antes da execução do algoritmo
 
 ### Apresentação Matemática da Função Heurística
 
@@ -148,23 +163,25 @@ python3 main.py
 
 #### 1. **Cenários Pré-definidos**
 O programa inclui 8 cenários pré-definidos para testar diferentes situações:
-- Diagonal Longa: Caminho atravessando múltiplas áreas
-- Montanha para Pântano: Entre terrenos caros
-- Atravessar Rio: Passagem obrigatória pelo meio
-- Usar Atalho: Aproveitamento da área de baixo custo
-- Bordas Opostas: Máxima distância no grid
-- Curta Distância: Teste rápido
-- Evitar Montanha: Contorno de terrenos caros
-- Desafio Complexo: Navegação com muitos obstáculos
+
+- **Cenário 0 - "Isolado em uma praia"**: Goal isolado e inacessível
+- **Cenário 1 - "Vulcão"**: Obstáculo central impedindo acesso
+- **Cenário 2 - "Posição inválida"**: Goal sobre uma parede (erro)
+- **Cenário 3 - "Usar Atalho"**: Caminho com aproveitamento de área rápida
+- **Cenário 4 - "Bordas Opostas"**: Máxima distância no grid
+- **Cenário 5 - "Curta Distância"**: Teste rápido com caminho simples
+- **Cenário 6 - "Evitar Montanha"**: Contorno de terrenos caros
+- **Cenário 7 - "Desafio"**: Navegação complexa com muitos obstáculos
 
 Para mudar o cenário, altere `SCENARIO_INDEX` em `main.py` (0-7).
 
 #### 2. **Log Detalhado**
 Ative `ENABLE_VERBOSE = True` em `main.py` para ver:
-- Listas Open e Closed a cada iteração
-- Valores de g(n), h(n) e f(n) para cada nó
-- Número de vizinhos adicionados
-- Estatísticas finais de exploração
+- **Listas Open e Closed** a cada iteração
+- **Valores de g(n), h(n) e f(n)** para cada nó
+- **Número de vizinhos adicionados** por iteração
+- **Estatísticas finais** de exploração (nós visitados/explorados)
+- **Processo de validação** de posições
 
 #### 3. **Visualização Colorida**
 - 🔵 **A (azul)**: Posição inicial
@@ -172,7 +189,13 @@ Ative `ENABLE_VERBOSE = True` em `main.py` para ver:
 - 🟢 **@ (verde)**: Caminho encontrado
 - 🔴 **### (vermelho)**: Obstáculos
 - **. (branco)**: Células livres
-- **>**, **<**, **^**, **v**: Direções exploradas
+- **>**, **<**, **^**, **v**: Direções exploradas (quando usando point_to)
+
+#### 4. **Tratamento de Casos de Falha**
+- **Validação automática** de posições inválidas
+- **Detecção de caminhos impossíveis** (goal isolado)
+- **Mensagens de erro descritivas** para debugging
+- **Verificação de limites do grid**
 
 ### Personalização:
 
@@ -181,20 +204,60 @@ Ative `ENABLE_VERBOSE = True` em `main.py` para ver:
 3. **Modificar o grid**: Altere `GRID_WIDTH` e `GRID_HEIGHT` em `main.py`
 4. **Adicionar áreas de custo**: Use `g.add_cost_area(x_min, y_min, x_max, y_max, cost)`
 5. **Modificar obstáculos**: Edite a lista `WALLS` em `data/walls.py`
-6. **Criar novos cenários**: Adicione em `data/scenarios.py`
+6. **Criar novos cenários**: Adicione objetos `Scenario` em `data/scenarios.py`
 
-## Complexidade
+### Estrutura de Cenários
+
+Cada cenário é definido pela classe `Scenario`:
+
+```python
+class Scenario:
+    def __init__(self, name: str, start: GridLocation, goal: GridLocation, description: str):
+        self.name = name
+        self.start = start
+        self.goal = goal
+        self.description = description
+```
+
+## Análise de Complexidade
 
 - **Tempo**: O(b^d) no pior caso, onde b é o fator de ramificação e d é a profundidade
 - **Espaço**: O(b^d) para armazenar a fronteira e nós visitados
 - **Otimalidade**: Garantida quando a heurística é admissível (como nossa implementação)
 
+### Estatísticas de Desempenho
+
+O programa exibe estatísticas importantes:
+- **Número total de nós explorados** (closed list)
+- **Número total de nós visitados** (open + closed)
+- **Custo total do caminho** encontrado
+- **Número de passos** no caminho
+- **Número de iterações** do algoritmo
+
 ## Visualização
 
 O programa exibe o grid no terminal com:
-- `A`: Posição inicial
-- `Z`: Posição objetivo  
-- `@`: Caminho encontrado (em verde)
-- `###`: Obstáculos (em vermelho)
+- `A`: Posição inicial (azul)
+- `Z`: Posição objetivo (amarelo)
+- `@`: Caminho encontrado (verde)
+- `###`: Obstáculos (vermelho)
 - `.`: Células livres
 - `>`, `<`, `^`, `v`: Direções exploradas 
+
+## Casos de Teste
+
+O sistema foi projetado para lidar com diversos cenários:
+
+### Casos de Sucesso:
+- Caminhos simples e diretos
+- Navegação em terrenos com custos variados
+- Contorno de obstáculos complexos
+- Otimização de rotas em áreas de baixo custo
+
+### Casos de Falha Controlada:
+- **Posições fora dos limites**: Detectado na validação
+- **Posições em obstáculos**: Rejeitado antes da execução
+- **Goals isolados**: Caminho não encontrado após exploração completa
+- **Start = Goal**: Detectado como entrada inválida
+
+O tratamento robusto de erros garante que o programa forneça feedback claro sobre problemas na configuração dos cenários. 
