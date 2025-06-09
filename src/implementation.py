@@ -91,18 +91,8 @@ class GridWithWeights(SquareGrid):
 
 def heuristic(a: GridLocation, b: GridLocation, min_step_cost: float = 1.0) -> float:
     """
-    Função heurística Manhattan Distance para A*.
-    
-    A função multiplica a distância de Manhattan pelo custo mínimo de passo.
-    
-    ADMISSIBILIDADE:
-    - ADMISSÍVEL quando min_step_cost >= 1.0: A heurística nunca superestima o custo real,
-      pois representa o menor custo possível considerando que cada movimento custa pelo menos min_step_cost.
-    
-    - NÃO-ADMISSÍVEL quando min_step_cost < 1.0: A heurística pode subestimar o custo real,
-      violando a propriedade de admissibilidade. Isso pode resultar em soluções subótimas.
-      
-    ATENÇÃO: Para garantir otimalidade do A*, use min_step_cost >= 1.0.
+    Calcula a distância de Manhattan entre dois pontos no grid, 
+    ajustada pelo custo mínimo de movimento.
     
     Args:
         a: Posição atual (x, y)
@@ -110,7 +100,11 @@ def heuristic(a: GridLocation, b: GridLocation, min_step_cost: float = 1.0) -> f
         min_step_cost: Custo mínimo por movimento (default: 1.0)
         
     Returns:
-        Estimativa heurística do custo de a até b
+        Estimativa heurística do custo restante
+        
+    Note:
+        - Com min_step_cost >= 1.0: Heurística ADMISSÍVEL (caminho ótimo garantido)
+        - Com min_step_cost > 1.0: Heurística NÃO-ADMISSÍVEL (pode superar custo real)
     """
     (x1, y1) = a
     (x2, y2) = b
